@@ -23,7 +23,7 @@ const config = {
     ]
 };
 
-const StartGame = (parent) => {
+const StartGame = (parent: string) => {
 
     return new Game({ ...config, parent });
 
