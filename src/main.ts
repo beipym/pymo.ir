@@ -1,11 +1,6 @@
-import './style.css'
-import { landingLoader } from './section-landing/loader-landing.ts';
+import { bootstrapApplication } from '@angular/platform-browser';
+import { appConfig } from './app/app.config';
+import { AppComponent } from './app/app.component';
 
-document.addEventListener("DOMContentLoaded" , () => {
-
-  landingLoader()
-
-  // StartGame('app');
-})
-
-
+bootstrapApplication(AppComponent, appConfig)
+  .catch((err) => console.error(err));
