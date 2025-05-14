@@ -34,7 +34,9 @@
             "styles": [
               "src/styles.scss"
             ],
-            "scripts": []
+            "scripts": [
+              "src/assets/external-background-umd/my-vite-background.umd.js"
+            ]
           },
           "configurations": {
             "production": {
