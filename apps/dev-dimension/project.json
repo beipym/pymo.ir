@@ -1,0 +1,9 @@
+{
+  "name": "dev-dimension",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/dev-dimension/src",
+  "projectType": "library",
+  "tags": [],
+  "// targets": "to see all targets run: nx show project dev-dimension --web",
+  "targets": {}
+}
