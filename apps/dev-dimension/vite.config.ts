@@ -23,7 +23,7 @@ export default defineConfig(() => ({
   // Configuration for building your library.
   // See: https://vitejs.dev/guide/build.html#library-mode
   build: {
-    outDir: '../../dist/apps/dev-dimension',
+    outDir: '../../dist/libs/dev-dimension',
     emptyOutDir: true,
     reportCompressedSize: true,
     commonjsOptions: {
@@ -33,10 +33,10 @@ export default defineConfig(() => ({
       // Could also be a dictionary or array of multiple entry points.
       entry: 'src/index.ts',
       name: 'dev-dimension',
-      fileName: 'index',
+      fileName: (format) => `dev-dimension.${format}.js`,
       // Change this to the formats you want to support.
       // Don't forget to update your package.json as well.
-      formats: ['es' as const],
+      formats: ['umd'],
     },
     rollupOptions: {
       // External packages that should not be bundled into your library.
@@ -44,3 +44,4 @@ export default defineConfig(() => ({
     },
   },
 }));
+  

@@ -31,7 +31,7 @@
           "apps/pymo-core/src/styles.scss"
         ],
         "scripts": [
-          "apps/pymo-core/src/assets/external-background-umd/my-vite-background.umd.js"
+          "dist/libs/dev-dimension/dev-dimension.umd.js"
         ]
       },
       "configurations": {
