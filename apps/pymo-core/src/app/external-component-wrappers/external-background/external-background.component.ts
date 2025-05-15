@@ -8,11 +8,9 @@ import { Component, ElementRef, AfterViewInit, OnDestroy, ViewChild, ChangeDetec
   styleUrl: './external-background.component.scss'
 })
 export class ExternalBackgroundComponent implements AfterViewInit {
-  hello = 'hello'
+  hello = '#ffffff'
  
   ngAfterViewInit(): void {
-    setTimeout(() => {
-      this.hello="hello!2222"
-    }, 3000);
+
   }
 }

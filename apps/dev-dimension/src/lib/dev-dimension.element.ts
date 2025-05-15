@@ -1,59 +1,51 @@
-export class DevDimension extends HTMLElement{
-    private _text: string | null = 'Default text'; // Default initial text
-  
-    // (1) Define which attributes to observe for changes.
-    static get observedAttributes() {
-      return ['data-text']; // We want to react when 'data-text' attribute changes
+// File: libs/three-background/src/main.ts
+// Import the necessary functions from our logic file
+import {
+  setupThreeScene,
+  animate,
+  setupEventListeners,
+  cleanupThreeResources,
+  updateMaterialFromAttributes,
+  // handleResize (only if needed to be called directly from class, usually not)
+} from './three.lib'; // Adjust path as necessary
+
+// Extend HTMLElement to get DOM element functionalities
+export class DevDimension extends HTMLElement {
+  constructor() {
+    super(); // Always call super first in constructor
+    // Minimal work in constructor. Initialization is best in connectedCallback.
+  }
+
+  connectedCallback(): void {
+    // console.log('three-background-wc: connectedCallback');
+    setupThreeScene(this);
+    setupEventListeners(this);
+    animate(this);
+    // An initial resize might be implicitly handled by setupThreeScene,
+    // but explicit call ensures everything is sized correctly if needed.
+    // handleResize(this); // This is called within setupThreeScene now
+  }
+
+  disconnectedCallback(): void {
+    // console.log('three-background-wc: disconnectedCallback');
+    cleanupThreeResources(this); // Crucial for preventing memory leaks
+  }
+
+  // Define which attributes should trigger attributeChangedCallback
+  static get observedAttributes(): string[] {
+    return ['bgColor' /*, 'color1', 'color2' */]; // Add more if you use them for shaders
+  }
+
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
+    // console.log(`three-background-wc: attributeChanged - ${name}: ${oldValue} -> ${newValue}`);
+    if (oldValue === newValue || !this.isConnected) {
+      return; // No change or component not in DOM
     }
-  
-    constructor() {
-      super(); // Always call super() first in the constructor.
-      // No Shadow DOM for this simple version. We'll manipulate the element's content directly.
-      console.log('SimpleTextElement: constructed!');
-    }
-  
-    // (2) Called when the element is added to the document's DOM.
-    connectedCallback() {
-      console.log('SimpleTextElement: connected to DOM!');
-      this.render();
-    }
-  
-    // (3) Called when an observed attribute has been added, removed, or changed.
-    attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null) {
-      console.log(`SimpleTextElement: attribute ${name} changed from ${oldValue} to ${newValue}`);
-      if (name === 'data-text') {
-        this._text = newValue;
-        this.render(); // Re-render when the text attribute changes
-      }
-    }
-  
-    // (4) Called when the element is disconnected from the document's DOM.
-    disconnectedCallback() {
-      console.log('SimpleTextElement: disconnected from DOM.');
-      // You could do cleanup here if needed
-    }
-  
-    // Helper method to update the element's display
-    private render() {
-      // For this super simple version, we directly set the textContent.
-      // In a more complex component, you'd likely create and append child elements.
-      this.textContent = this._text ? this._text : 'No text provided'; // Display the text or a fallback
-    }
-  
-    // Optional: You could also define getters/setters for programmatic access if needed
-    // get text(): string | null {
-    //   return this.getAttribute('data-text');
-    // }
-  
-    // set text(value: string | null) {
-    //   if (value) {
-    //     this.setAttribute('data-text', value);
-    //   } else {
-    //     this.removeAttribute('data-text');
-    //   }
-    // }
-  
-  // (5) Define the custom element (this line is usually moved to the library's index.ts)
-  // customElements.define('simple-text-display', SimpleTextElement);
-  
+    // Delegate attribute handling to the logic function
+    updateMaterialFromAttributes(this, name, newValue);
+  }
 }
+
+// Optional: Export the class if you might need to import it elsewhere,
+// though for custom elements, the define call is the primary way it's "exported".
+// export { ThreeBackgroundWC };
