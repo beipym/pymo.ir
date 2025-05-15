@@ -7,7 +7,12 @@ import { Component, ElementRef, AfterViewInit, OnDestroy, ViewChild, ChangeDetec
   templateUrl: './external-background.component.html',
   styleUrl: './external-background.component.scss'
 })
-export class ExternalBackgroundComponent {
-  @ViewChild('backgroundHost') backgroundHost!: ElementRef<HTMLDivElement>;
-
+export class ExternalBackgroundComponent implements AfterViewInit {
+  hello = 'hello'
+ 
+  ngAfterViewInit(): void {
+    setTimeout(() => {
+      this.hello="hello!2222"
+    }, 3000);
+  }
 }
