@@ -14,7 +14,7 @@ interface ThreeContext {
   renderer: THREE.WebGLRenderer;
   scene: THREE.Scene;
   camera: THREE.OrthographicCamera;
-  mesh: THREE.Mesh<THREE.BufferGeometry, THREE.Material | THREE.Material[]>;
+  meshGroup: THREE.Group;
   // Example for shader material if you go that route:
   // shaderMaterial?: THREE.ShaderMaterial;
 }
@@ -26,9 +26,38 @@ const getRandomColor = ()=>{
   return `#${color}`;
 }
 
+// Create this once and reuse it for all shapes
+const sharedShapeMaterial = new THREE.MeshBasicMaterial({
+  vertexColors: true, // This is the key!
+  side: THREE.DoubleSide,
+  transparent: true,
+  opacity: 0.5
+});
+
 // WeakMap to store all data associated with an element instance
 // This is defined once, after the interfaces it uses.
 const elementInstanceRegistry = new WeakMap<HTMLElement, ElementInstanceData>();
+
+
+const shapeGen = () => {
+
+  const geometry = new THREE.BufferGeometry();
+  const vertices = [];
+  vertices.push(
+    0,0,0,
+    0,Math.random(),0,
+    0,0,Math.random());
+
+  const verticeColors = [];
+  verticeColors.push(
+    Math.random(),Math.random(),Math.random(),
+    Math.random(),Math.random(),Math.random(),
+    Math.random(),Math.random(),Math.random()
+  )
+  geometry.setAttribute("position", new THREE.Float32BufferAttribute(vertices,3));
+  geometry.setAttribute("color", new THREE.Float32BufferAttribute(verticeColors,3));
+  return geometry;
+}
 
 /**
  * Initializes the Three.js scene, renderer, camera, and a full-screen plane.
@@ -62,28 +91,25 @@ export function setupThreeScene(element: HTMLElement): void {
   const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 10);
   camera.position.z = 5; // Position the camera
 
-  const planeGeometry = new THREE.PlaneGeometry(1, 1); // A plane that will fill the screen
-  const geometry = new THREE.BufferGeometry();
-  const vertices = [];
-  vertices.push(0,0,0,0,1,0,0,0,1);
-  geometry.setAttribute("position", new THREE.Float32BufferAttribute(vertices,3))
-  // Default color for the plane, taken from 'bgColor' attribute or defaults to white
-  
-  const material = new THREE.MeshBasicMaterial({
-    color: new THREE.Color(getRandomColor()),
-    side: THREE.DoubleSide,
-    transparent: true,
-    opacity: 0.5
-  });
-  const mesh = new THREE.Mesh(geometry, material);
-  scene.add(mesh);
+  const meshGroup = new THREE.Group();
+
+  for (let index = 0; index < 30; index++) {
+    const mesh = new THREE.Mesh(shapeGen(), sharedShapeMaterial);
+
+    mesh.rotation.x = Math.random() * Math.PI * 2;
+    mesh.rotation.y = Math.random() * Math.PI * 2;
+    mesh.rotation.z = Math.random() * Math.PI * 2;   
+    meshGroup.add(mesh);
+  }
+
+  scene.add(meshGroup);
 
   const threeContext: ThreeContext = {
     canvas,
     renderer,
     scene,
     camera,
-    mesh,
+    meshGroup,
   };
 
   const currentData = elementInstanceRegistry.get(element) || {};
@@ -101,7 +127,7 @@ export function animate(element: HTMLElement, timestamp?: number): void {
   const data = elementInstanceRegistry.get(element);
   if (!element.isConnected || !data || !data.threeContext) return; // Exit if not ready
 
-  const { renderer, scene, camera, mesh } = data.threeContext;
+  const { renderer, scene, camera, meshGroup } = data.threeContext;
 
   // Animation Logic
   if (timestamp === undefined) {
@@ -113,8 +139,8 @@ export function animate(element: HTMLElement, timestamp?: number): void {
     const deltaTime = (timestamp - data.lastTimestamp) / 1000; // Time since last frame in seconds
 
     // Example: Rotate the plane
-    mesh.rotation.x += 0.7 * deltaTime *3;
-    mesh.rotation.y += 0.7 * deltaTime;
+    meshGroup.rotation.x += 0.7 * deltaTime *3;
+    meshGroup.rotation.y += 0.7 * deltaTime;
 
     data.lastTimestamp = timestamp; // Store current time for next frame
   }
@@ -205,32 +231,32 @@ export function cleanupThreeResources(element: HTMLElement): void {
   }
 
   // Dispose of Three.js objects to free up GPU memory
-  if (data.threeContext) {
-    const { renderer, scene, mesh, canvas } = data.threeContext;
+  // if (data.threeContext) {
+  //   const { renderer, scene, mesh, canvas } = data.threeContext;
 
-    if (mesh) {
-      if (mesh.geometry) mesh.geometry.dispose();
-      if (mesh.material) {
-        const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-        materials.forEach(material => {
-          if ((material as THREE.MeshBasicMaterial).map) {
-            (material as THREE.MeshBasicMaterial).map!.dispose(); // Dispose textures
-          }
-          material.dispose(); // Dispose material
-        });
-      }
-      scene.remove(mesh); // Remove from scene
-    }
+  //   if (mesh) {
+  //     if (mesh.geometry) mesh.geometry.dispose();
+  //     if (mesh.material) {
+  //       const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+  //       materials.forEach(material => {
+  //         if ((material as THREE.MeshBasicMaterial).map) {
+  //           (material as THREE.MeshBasicMaterial).map!.dispose(); // Dispose textures
+  //         }
+  //         material.dispose(); // Dispose material
+  //       });
+  //     }
+  //     scene.remove(mesh); // Remove from scene
+  //   }
 
-    if (renderer) renderer.dispose(); // Dispose renderer
-    if (canvas && canvas.parentNode) {
-        canvas.parentNode.removeChild(canvas); // Remove canvas from DOM
-    }
-    if (element.shadowRoot) {
-        element.shadowRoot.innerHTML = ''; // Clear shadow DOM
-    }
-    delete data.threeContext; // Remove Three.js context from our stored data
-  }
+  //   if (renderer) renderer.dispose(); // Dispose renderer
+  //   if (canvas && canvas.parentNode) {
+  //       canvas.parentNode.removeChild(canvas); // Remove canvas from DOM
+  //   }
+  //   if (element.shadowRoot) {
+  //       element.shadowRoot.innerHTML = ''; // Clear shadow DOM
+  //   }
+  //   delete data.threeContext; // Remove Three.js context from our stored data
+  // }
 
   cleanupEventListeners(element); // Remove event listeners
 
@@ -241,25 +267,9 @@ export function cleanupThreeResources(element: HTMLElement): void {
 
 /**
  * Updates the material of the plane based on HTML attributes.
+ * this method is not needed for now 
  * @param element - The custom element instance.
  * @param name - The name of the attribute that changed.
  * @param newValue - The new value of the attribute.
  */
-export function updateMaterialFromAttributes(element: HTMLElement, name: string, newValue: string | null): void {
-    const data = elementInstanceRegistry.get(element);
-    if (!data || !data.threeContext || newValue === null) return;
-
-    const { mesh } = data.threeContext;
-
-    // Ensure we have a plane and a single material to update
-    if (mesh && mesh.material && !(Array.isArray(mesh.material))) {
-        const material = mesh.material as THREE.MeshBasicMaterial;
-        if (name === 'bgColor' && material.color) {
-            material.color.set(newValue); // Update color
-        }
-        // Example: Handle attributes for shader uniforms
-        // if (name === 'color1' && data.threeContext.shaderMaterial?.uniforms.uColor1) {
-        //   data.threeContext.shaderMaterial.uniforms.uColor1.value.set(newValue);
-        // }
-    }
-}
+export function updateMaterialFromAttributes(element: HTMLElement, name: string, newValue: string | null): void {}
