@@ -5,7 +5,6 @@ import {
   animate,
   setupEventListeners,
   cleanupThreeResources,
-  updateMaterialFromAttributes,
   // handleResize (only if needed to be called directly from class, usually not)
 } from './three.lib'; // Adjust path as necessary
 
@@ -17,17 +16,13 @@ export class DevDimension extends HTMLElement {
   }
 
   connectedCallback(): void {
-    // console.log('three-background-wc: connectedCallback');
     setupThreeScene(this);
     setupEventListeners(this);
     animate(this);
-    // An initial resize might be implicitly handled by setupThreeScene,
-    // but explicit call ensures everything is sized correctly if needed.
-    // handleResize(this); // This is called within setupThreeScene now
+   
   }
 
   disconnectedCallback(): void {
-    // console.log('three-background-wc: disconnectedCallback');
     cleanupThreeResources(this); // Crucial for preventing memory leaks
   }
 
@@ -37,15 +32,9 @@ export class DevDimension extends HTMLElement {
   }
 
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
-    // console.log(`three-background-wc: attributeChanged - ${name}: ${oldValue} -> ${newValue}`);
     if (oldValue === newValue || !this.isConnected) {
-      return; // No change or component not in DOM
+      return; 
     }
     // Delegate attribute handling to the logic function
-    updateMaterialFromAttributes(this, name, newValue);
   }
 }
-
-// Optional: Export the class if you might need to import it elsewhere,
-// though for custom elements, the define call is the primary way it's "exported".
-// export { ThreeBackgroundWC };

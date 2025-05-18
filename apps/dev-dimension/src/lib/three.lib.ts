@@ -4,8 +4,8 @@ import * as THREE from 'three';
 interface ElementInstanceData {
   animationFrameId?: number;
   resizeHandler?: () => void;
-  threeContext?: ThreeContext; // Holds all Three.js related objects
-  lastTimestamp?: number; // To calculate delta time for smooth animation
+  threeContext?: ThreeContext; 
+  lastTimestamp?: number; 
 }
 
 // Interface for the Three.js context associated with an element
@@ -15,9 +15,15 @@ interface ThreeContext {
   scene: THREE.Scene;
   camera: THREE.OrthographicCamera;
   meshGroup: THREE.Group;
-  // Example for shader material if you go that route:
-  // shaderMaterial?: THREE.ShaderMaterial;
 }
+
+const clock = new THREE.Clock();
+let lastActionTime = 0;
+const actionIntervalSeconds = 1.0; // Do something every 1 second
+
+const shapesInAct: THREE.Mesh[] = [];
+
+let currentIndex = 0;
 
 //utility to generate colors 
 const getRandomColor = ()=>{
@@ -90,21 +96,9 @@ export function setupThreeScene(element: HTMLElement): void {
 
   const scene = new THREE.Scene();
   const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 10);
-  camera.position.z = 5; // Position the camera
+  camera.position.z = 2; // Position the camera
 
   const meshGroup = new THREE.Group();
-
-  for (let index = 0; index < 30; index++) {
-    const mesh = new THREE.Mesh(shapeGen(), sharedShapeMaterial);
-
-    mesh.rotation.x = Math.random() * Math.PI * 2;
-    mesh.rotation.y = Math.random() * Math.PI * 2;
-    mesh.rotation.z = Math.random() * Math.PI * 2;   
-    meshGroup.add(mesh);
-  }
-
-  meshGroup.scale.set(0.5,0.5,0.5)
-
   scene.add(meshGroup);
 
   const threeContext: ThreeContext = {
@@ -140,10 +134,9 @@ export function animate(element: HTMLElement, timestamp?: number): void {
         data.lastTimestamp = timestamp;
     }
     const deltaTime = (timestamp - data.lastTimestamp) / 1000; // Time since last frame in seconds
-
-    // Example: Rotate the plane
-    meshGroup.rotation.x += 0.7 * deltaTime *3;
-    meshGroup.rotation.y += 0.7 * deltaTime;
+    
+    meshGroup.rotation.x += 0.2 * deltaTime *3;
+    meshGroup.rotation.y -= 0.2 * deltaTime;
 
     data.lastTimestamp = timestamp; // Store current time for next frame
   }
@@ -153,6 +146,51 @@ export function animate(element: HTMLElement, timestamp?: number): void {
   // Continue the loop
   data.animationFrameId = requestAnimationFrame((ts) => animate(element, ts));
   elementInstanceRegistry.set(element, data);
+
+  const elapsedTime = clock.getElapsedTime(); // Total time since Clock was started
+
+  if (elapsedTime - lastActionTime >= actionIntervalSeconds ) {
+    console.log(`Action triggered at time: ${elapsedTime.toFixed(2)}s`);
+    // --- YOUR CODE TO RUN AT THIS TIME GOES HERE ---
+
+    lastActionTime = elapsedTime; // Reset the last action time
+    // Or, for more precise intervals: lastActionTime += actionIntervalSeconds;
+    // This prevents drift if a frame takes slightly longer than the interval.
+    
+    if( shapesInAct.length < 15 ){
+      
+      const mesh = new THREE.Mesh(shapeGen(), sharedShapeMaterial);
+
+      mesh.rotation.x = Math.random() * Math.PI * 2;
+      mesh.rotation.y = Math.random() * Math.PI * 2;
+      mesh.rotation.z = Math.random() * Math.PI * 2;   
+      meshGroup.add(mesh);
+
+      meshGroup.scale.set(0.5,0.5,0.5)
+      
+      shapesInAct.push(mesh)
+     
+    } else{
+
+        const delMesh = shapesInAct[0];
+        shapesInAct.shift();
+        if (delMesh.geometry) delMesh.geometry.dispose();
+        if (delMesh.material) {
+          const materials = Array.isArray(delMesh.material) ? delMesh.material : [delMesh.material];
+          materials.forEach(material => {
+            if ((material as THREE.MeshBasicMaterial).map) {
+              (material as THREE.MeshBasicMaterial).map!.dispose(); // Dispose textures
+            }
+            material.dispose(); // Dispose material
+          });
+        }
+        meshGroup.remove(delMesh); // Remove from scene
+
+      }
+
+  } 
+  
+
 }
 
 /**
@@ -184,12 +222,6 @@ export function handleResize(element: HTMLElement): void {
     camera.bottom = -1 / aspect;
   }
   camera.updateProjectionMatrix(); // Apply camera changes
-
-  // Example: If using a shader that needs resolution
-  // const { shaderMaterial } = data.threeContext;
-  // if (shaderMaterial && shaderMaterial.uniforms.uResolution) {
-  //   shaderMaterial.uniforms.uResolution.value.set(newWidth, newHeight);
-  // }
 }
 
 /**
@@ -233,46 +265,6 @@ export function cleanupThreeResources(element: HTMLElement): void {
     delete data.animationFrameId;
   }
 
-  // Dispose of Three.js objects to free up GPU memory
-  // if (data.threeContext) {
-  //   const { renderer, scene, mesh, canvas } = data.threeContext;
-
-  //   if (mesh) {
-  //     if (mesh.geometry) mesh.geometry.dispose();
-  //     if (mesh.material) {
-  //       const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-  //       materials.forEach(material => {
-  //         if ((material as THREE.MeshBasicMaterial).map) {
-  //           (material as THREE.MeshBasicMaterial).map!.dispose(); // Dispose textures
-  //         }
-  //         material.dispose(); // Dispose material
-  //       });
-  //     }
-  //     scene.remove(mesh); // Remove from scene
-  //   }
-
-  //   if (renderer) renderer.dispose(); // Dispose renderer
-  //   if (canvas && canvas.parentNode) {
-  //       canvas.parentNode.removeChild(canvas); // Remove canvas from DOM
-  //   }
-  //   if (element.shadowRoot) {
-  //       element.shadowRoot.innerHTML = ''; // Clear shadow DOM
-  //   }
-  //   delete data.threeContext; // Remove Three.js context from our stored data
-  // }
-
   cleanupEventListeners(element); // Remove event listeners
 
-  // WeakMap will eventually garbage collect the entry for `element`
-  // if the element itself is garbage collected.
-  // elementInstanceRegistry.delete(element); // Could be used for immediate removal if needed
 }
-
-/**
- * Updates the material of the plane based on HTML attributes.
- * this method is not needed for now 
- * @param element - The custom element instance.
- * @param name - The name of the attribute that changed.
- * @param newValue - The new value of the attribute.
- */
-export function updateMaterialFromAttributes(element: HTMLElement, name: string, newValue: string | null): void {}
