@@ -2,7 +2,7 @@
     position: fixed; /* Or absolute, depending on parent */
     top: 0;
     left: 0;
-    width: 100vw;
+    width: 100%;
     height: 100vh;
     z-index: -10; /* Ensure it's behind other content */
     // border: 2px dashed blue; // For debugging visibility
