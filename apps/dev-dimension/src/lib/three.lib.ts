@@ -31,7 +31,7 @@ const sharedShapeMaterial = new THREE.MeshBasicMaterial({
   vertexColors: true, // This is the key!
   side: THREE.DoubleSide,
   transparent: true,
-  opacity: 0.5
+  opacity: 0.6
 });
 
 // WeakMap to store all data associated with an element instance
@@ -42,20 +42,21 @@ const elementInstanceRegistry = new WeakMap<HTMLElement, ElementInstanceData>();
 const shapeGen = () => {
 
   const geometry = new THREE.BufferGeometry();
-  const vertices = [];
-  vertices.push(
-    0,0,0,
-    0,Math.random(),0,
-    0,0,Math.random());
 
-  const verticeColors = [];
-  verticeColors.push(
-    Math.random(),Math.random(),Math.random(),
-    Math.random(),Math.random(),Math.random(),
-    Math.random(),Math.random(),Math.random()
-  )
-  geometry.setAttribute("position", new THREE.Float32BufferAttribute(vertices,3));
-  geometry.setAttribute("color", new THREE.Float32BufferAttribute(verticeColors,3));
+  const vertexPositions = new Float32Array([
+    0, 0, 0,                         // Vertex 1
+    Math.random(), Math.random(), Math.random(), // Vertex 2
+    Math.random(), Math.random(), Math.random()  // Vertex 3
+  ]);
+
+  const vertexColorsData = new Float32Array([
+    Math.random(), Math.random(), Math.random(), // Color for Vertex 1
+    Math.random(), Math.random(), Math.random(), // Color for Vertex 2
+    Math.random(), Math.random(), Math.random()  // Color for Vertex 3
+  ]);
+
+  geometry.setAttribute("position", new THREE.BufferAttribute(vertexPositions,3));
+  geometry.setAttribute("color", new THREE.BufferAttribute(vertexColorsData,3));
   return geometry;
 }
 
@@ -101,6 +102,8 @@ export function setupThreeScene(element: HTMLElement): void {
     mesh.rotation.z = Math.random() * Math.PI * 2;   
     meshGroup.add(mesh);
   }
+
+  meshGroup.scale.set(0.5,0.5,0.5)
 
   scene.add(meshGroup);
 
