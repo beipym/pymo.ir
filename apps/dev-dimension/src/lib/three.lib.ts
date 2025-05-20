@@ -23,8 +23,6 @@ const actionIntervalSeconds = 1.0; // Do something every 1 second
 
 const shapesInAct: THREE.Mesh[] = [];
 
-let currentIndex = 0;
-
 //utility to generate colors 
 const getRandomColor = ()=>{
   const color = Math.floor(Math.random() * 16777216).toString(16);
@@ -99,6 +97,7 @@ export function setupThreeScene(element: HTMLElement): void {
   camera.position.z = 2; // Position the camera
 
   const meshGroup = new THREE.Group();
+  meshGroup.position.set(1,0,0)
   scene.add(meshGroup);
 
   const threeContext: ThreeContext = {

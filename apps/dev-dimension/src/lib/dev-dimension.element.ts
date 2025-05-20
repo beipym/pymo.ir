@@ -28,7 +28,7 @@ export class DevDimension extends HTMLElement {
 
   // Define which attributes should trigger attributeChangedCallback
   static get observedAttributes(): string[] {
-    return ['bgColor' /*, 'color1', 'color2' */]; // Add more if you use them for shaders
+    return []; // Add more if you use them for shaders
   }
 
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
