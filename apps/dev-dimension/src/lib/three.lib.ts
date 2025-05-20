@@ -31,11 +31,12 @@ const getRandomColor = ()=>{
 }
 
 // Create this once and reuse it for all shapes
-const sharedShapeMaterial = new THREE.MeshBasicMaterial({
+const sharedShapeMaterial = new THREE.MeshPhongMaterial({
   vertexColors: true, // This is the key!
   side: THREE.DoubleSide,
   transparent: true,
-  opacity: 0.6
+  opacity: 0.6,
+  shininess: 100
 });
 
 // WeakMap to store all data associated with an element instance
@@ -91,14 +92,29 @@ export function setupThreeScene(element: HTMLElement): void {
   });
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setClearColor(0x000000,1)
 
   const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x000000);
+
+  // Add directional light
+  const directionalLight = new THREE.DirectionalLight(0xffffff, 10);
+  directionalLight.position.set(1,1,0); // Position the light
+  
+  // Add ambient light for better overall illumination
+  const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
+
+  
   const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 10);
   camera.position.z = 2; // Position the camera
 
   const meshGroup = new THREE.Group();
-  meshGroup.position.set(1,0,0)
+  meshGroup.position.set(1,0,0);
+
+  directionalLight.target = meshGroup;
   scene.add(meshGroup);
+  scene.add(directionalLight.target);
+  scene.add(ambientLight);
 
   const threeContext: ThreeContext = {
     canvas,
