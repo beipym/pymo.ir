@@ -7,16 +7,16 @@ const CONFIG = {
   ACTION_INTERVAL: 1.0,
   BLOOM: {
     STRENGTH: 1.5,
-    RADIUS: 0.4,
+    RADIUS: 0.2,
     THRESHOLD: 0.8
   },
   MATERIAL: {
     EMISSIVE_INTENSITY: 2.5,
-    METALNESS: 0.8,
-    ROUGHNESS: 0.2,
-    OPACITY: 0.9,
+    METALNESS: 0.9,
+    ROUGHNESS: 0.1,
+    OPACITY: 0.5,
     COLOR: 0xffffff,
-    SHININESS: 100
+    SHININESS: 250
   }
 } as const;
 
@@ -103,24 +103,21 @@ function createScene(): THREE.Scene {
   scene.background = new THREE.Color(0x000000);
 
   // Add ambient light for overall illumination
-  const ambientLight = new THREE.AmbientLight(0xffffff, .5);
+  const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
   scene.add(ambientLight);
 
   // Add point lights for better color reflection
   const pointLight1 = new THREE.PointLight(0xff0000, 1, 10);
-  pointLight1.position.set(0, 1, 0);
+  pointLight1.position.set(1, 1, 0);
   scene.add(pointLight1);
 
-  const pointLight2 = new THREE.PointLight(0xff0000, 1, 10);
-  pointLight1.position.set(0,-1, 0);
+  const pointLight2 = new THREE.PointLight(0x00ff00, 1, 10);
+  pointLight2.position.set(1, 1.1, 0);
   scene.add(pointLight2);
-  // const pointLight2 = new THREE.PointLight(0xffffff, 1, 10);
-  // pointLight2.position.set(1, 0, 0);
-  // scene.add(pointLight2);
 
-  // const pointLight3 = new THREE.PointLight(0xffffff, 1, 10);
-  // pointLight3.position.set(-1, 0, 0);
-  // scene.add(pointLight3);
+  const pointLight3 = new THREE.PointLight(0x0000ff, 1, 10);
+  pointLight3.position.set(1, 1.2, 0);
+  scene.add(pointLight3);
 
   return scene;
 }
