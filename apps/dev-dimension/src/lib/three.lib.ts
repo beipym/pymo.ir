@@ -174,7 +174,9 @@ export function setupThreeScene(element: HTMLElement): void {
   const scene = createScene();
   const camera = createCamera();
   const meshGroup = new THREE.Group();
-  meshGroup.position.set(1, 0, 0);
+  // Position the meshGroup at the right side of the screen
+  // Using 0.8 to keep it slightly inset from the right edge to ensure full visibility
+  meshGroup.position.set(0.8, 0, 0);
   scene.add(meshGroup);
 
   const composer = createComposer(renderer, scene, camera);
@@ -272,13 +274,16 @@ export function handleResize(element: HTMLElement): void {
   const data = elementInstanceRegistry.get(element);
   if (!data || !data.threeContext || !element.isConnected) return;
 
-  const { renderer, camera } = data.threeContext;
+  const { renderer, camera, composer, meshGroup } = data.threeContext;
   const newWidth = window.innerWidth;
   const newHeight = window.innerHeight;
 
   renderer.setSize(newWidth, newHeight);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Cap pixel ratio for performance
+  composer.setSize(newWidth, newHeight);
+  composer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   
+
   // Adjust OrthographicCamera for aspect ratio
   const aspect = newWidth / newHeight;
   if (aspect >= 1) { // Landscape or square
