@@ -1,0 +1,20 @@
+---
+deployment:
+  tasks:
+    # Set environment variables as needed
+    - export NODE_ENV=production
+    # Go to repo directory (where .cpanel.yml is)
+    - cd $CPANEL_DEPLOYMENT_WORKING_DIRECTORY
+    # Install Node version (if supported by your hosting)
+    - source ~/.nvm/nvm.sh && nvm install 20 # or your required Node version
+    # Install dependencies
+    - npm install --legacy-peer-deps # or pnpm/i/yarn based on your project
+    # Build the Angular app (replace 'web-app' with your actual app name)
+    - npx nx build dev-dimension --configuration=production
+    - npx nx build pymo --configuration=production
+    # Remove old build (be very careful with rm -rf!)
+    - rm -rf /home/pymoir/public_html/*
+    # Copy the built app to public_html (adjust the dist path as needed)
+    - cp -r dist/pymo/* /home/pymoir/public_html/
+    # Copy any extra files (if needed, like .htaccess)
+    # - cp .htaccess /home/pymoir/public_html/ || true
